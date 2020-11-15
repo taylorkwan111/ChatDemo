@@ -2,6 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>Please enable to scan QR code, or take photos.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Please authorize the location services.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Please authorize the location services.</string>
+    <key>NSLocationUsageDescription</key>
+    <string>Please authorize the location services.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Please authorize the location services.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Please enable to save images on your device.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Please enable for getting profile images, or upload photos.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -41,8 +60,6 @@
 	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

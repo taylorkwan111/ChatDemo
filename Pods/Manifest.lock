@@ -1,0 +1,81 @@
+PODS:
+  - Alamofire (4.9.1)
+  - ChatViewController (1.2.0):
+    - PlaceholderUITextView
+  - Crashlytics (3.14.0):
+    - Fabric (~> 1.10.2)
+  - Fabric (1.10.2)
+  - FSPagerView (0.8.3)
+  - IQKeyboardManagerSwift (6.5.6)
+  - Kingfisher (5.15.7):
+    - Kingfisher/Core (= 5.15.7)
+  - Kingfisher/Core (5.15.7)
+  - MBProgressHUD (1.2.0)
+  - MJRefresh (3.5.0)
+  - OneSignal (2.15.4)
+  - PlaceholderUITextView (1.2.0)
+  - SDWebImage (5.9.4):
+    - SDWebImage/Core (= 5.9.4)
+  - SDWebImage/Core (5.9.4)
+  - SnapKit (5.0.1)
+  - SwiftyJSON (5.0.0)
+  - Then (2.7.0)
+  - TTTAttributedLabel (2.0.0)
+
+DEPENDENCIES:
+  - Alamofire (~> 4.9.1)
+  - ChatViewController
+  - Crashlytics
+  - Fabric
+  - FSPagerView
+  - IQKeyboardManagerSwift
+  - Kingfisher
+  - MBProgressHUD
+  - MJRefresh
+  - OneSignal (< 3.0, >= 2.6.2)
+  - SDWebImage
+  - SnapKit
+  - SwiftyJSON
+  - Then
+  - TTTAttributedLabel
+
+SPEC REPOS:
+  trunk:
+    - Alamofire
+    - ChatViewController
+    - Crashlytics
+    - Fabric
+    - FSPagerView
+    - IQKeyboardManagerSwift
+    - Kingfisher
+    - MBProgressHUD
+    - MJRefresh
+    - OneSignal
+    - PlaceholderUITextView
+    - SDWebImage
+    - SnapKit
+    - SwiftyJSON
+    - Then
+    - TTTAttributedLabel
+
+SPEC CHECKSUMS:
+  Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
+  ChatViewController: fcc9152b22a0099ced7052d842829d6a7ee9e53f
+  Crashlytics: 9220f5bc89e7a618df411b4f639389dbfb0e03d2
+  Fabric: ea977e3cd9c20425516d3dafd3bf8c941c51223f
+  FSPagerView: 670405b2f18e2a87fa37f20b00de783e562c25a8
+  IQKeyboardManagerSwift: c7df9d2deb356c04522f5c4b7b6e4ce4d8ed94fe
+  Kingfisher: 6e1a13523fcb1c86924ce53affe4ac957e544d59
+  MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
+  MJRefresh: 6afc955813966afb08305477dd7a0d9ad5e79a16
+  OneSignal: 6647275955d0f06d9e17c90dc93af9d85ecfd2b9
+  PlaceholderUITextView: a2158e51dc0a3217ecca2d879bbe59372292d391
+  SDWebImage: b69257f4ab14e9b6a2ef53e910fdf914d8f757c1
+  SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
+  SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
+  Then: acfe0be7e98221c6204e12f8161459606d5d822d
+  TTTAttributedLabel: 8cffe8e127e4e82ff3af1e5386d4cd0ad000b656
+
+PODFILE CHECKSUM: 6e4f2994345c552e938d77f2b053c167d879d16c
+
+COCOAPODS: 1.9.3

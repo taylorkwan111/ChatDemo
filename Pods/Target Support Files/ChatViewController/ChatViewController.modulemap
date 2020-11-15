@@ -1,0 +1,6 @@
+framework module ChatViewController {
+  umbrella header "ChatViewController-umbrella.h"
+
+  export *
+  module * { export * }
+}
