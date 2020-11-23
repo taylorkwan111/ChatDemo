@@ -9,8 +9,8 @@
 import UIKit
 import ChatViewController
 class ChatListTableViewController: BaseTableViewController {
-
-  var bubbleImageStyle: BubbleStyle = .facebook
+    
+    var bubbleImageStyle: BubbleStyle = .facebook
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,21 +19,21 @@ class ChatListTableViewController: BaseTableViewController {
     }
     
     private func configureTableView() {
-           tableView.do {
-               $0.separatorStyle = .none
-               $0.keyboardDismissMode = .onDrag
-               $0.delegate = self
-               $0.dataSource = self
-               $0.register(ChatListTableViewCell.nib, forCellReuseIdentifier: "cell")
-               $0.backgroundView = UIImageView(image: UIImage(named: "chatbg"))
-           }
-       }
+        tableView.do {
+            $0.separatorStyle = .none
+            $0.keyboardDismissMode = .onDrag
+            $0.delegate = self
+            $0.dataSource = self
+            $0.register(ChatListTableViewCell.nib, forCellReuseIdentifier: "cell")
+            $0.backgroundView = UIImageView(image: UIImage(named: "chatbg"))
+        }
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
-
+    
     // MARK: - Table view data source
 }
 
@@ -42,13 +42,13 @@ class ChatListTableViewController: BaseTableViewController {
 extension ChatListTableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-           return 4
-       }
-       
-       override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-           let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ChatListTableViewCell
-           return cell
-       }
+        return 4
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ChatListTableViewCell
+        return cell
+    }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -60,7 +60,7 @@ extension ChatListTableViewController {
         configuration.chatBarStyle = .default
         configuration.imagePickerType = .slack
         vc.configuration = configuration
-
+        
         navigationController?.pushViewController(vc, animated: true)
     }
     

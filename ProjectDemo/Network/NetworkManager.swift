@@ -11,8 +11,6 @@
 import UIKit
 import Alamofire
 
-public typealias SuccessHandler = (_ response: AnyObject?, _ statusCode: Int) -> Void
-public typealias FailureHandler = (_ error: NetworkError?) -> Void
 public typealias DataRequest = Alamofire.DataRequest
 
 public struct NetworkError: LocalizedError {
@@ -37,101 +35,80 @@ class NetworkManager: NSObject {
     
     static let shared = NetworkManager()
     
-    var suppressesOnErrorIfCancelled: Bool = false
+    let datePostingFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt
+    }()
     
     let pageLimit: Int = 10
     
     @discardableResult
-    func request(url: String, method: HTTPMethod, parameters: Parameters?, encoding: ParameterEncoding?, successHandler: SuccessHandler?, failureHandler: FailureHandler?) -> DataRequest {
-        print("API: \(method.rawValue) \(url)")
-        var headers: [String: String] = ["Accept": "application/json"]
+    func request(url: String, method: HTTPMethod, parameters: Parameters?) -> DataRequest {
+        dprint("API: \(method.rawValue) \(url)")
+        var headers: HTTPHeaders = ["Accept": "application/json"]
         if let apiToken = UserDefaults.standard.userToken, !apiToken.isEmpty {
             headers["Authorization"] = "Bearer \(apiToken)"
-            headers["Accept-Language"] = "zh-Hant" // TODO: Support multiple languages if needed.
+            headers["Accept-Language"] = "en" // TODO: Support multiple languages if needed.
         }
-        let parameterEncoding: ParameterEncoding = encoding ?? (method == .get ? URLEncoding.queryString : JSONEncoding.default)
-         return Alamofire.request(url, method: method, parameters: parameters, encoding: parameterEncoding, headers: headers)
+        let parameterEncoding: ParameterEncoding = method == .get ? URLEncoding.queryString : JSONEncoding.default
+        return AF.request(url, method: method, parameters: parameters, encoding: parameterEncoding, headers: headers)
             .validate()
             .validate(contentType: ["application/json", "text/json"])
             .responseJSON { (response) in
                 let statusCode = response.response?.statusCode ?? -1
-                switch response.result {
-                case .failure(let error):
-                    if statusCode == 401, let apiToken = UserDefaults.standard.userToken, !apiToken.isEmpty {
-                        NotificationCenter.default.post(name: .accessTokenExpired, object: nil)
-                    }
-                    do {
-                        if let data = response.data,
-                            let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any],
-                            let name = json["name"] as? String,
-                            let message = json["message"] as? String {
-                            if (statusCode == 401 && url == API.authentication) {
-                                let error = NetworkError(title: "Invalid Login", message: "Please check your email and password again.", code: statusCode)
-                                failureHandler?(error)
-                                return
-                            } else if (statusCode == 401) {
-                                let error = NetworkError(title: "Session Expired", message: "Please login again.", code: statusCode)
-                                failureHandler?(error)
-                                return
-                            }
-                            let error = NetworkError(title: name, message: message, code: statusCode)
-                            failureHandler?(error)
-                            return
-                        }
-                    } catch {
-                        print("CANNOT GET JSON")
-                    }
-                    print("ERROR: \(error)") // HTTP URL response
-                    let error = NetworkError(title: error.localizedDescription, message: error.localizedDescription, code: statusCode)
-                    failureHandler?(error)
-                case .success:
-                    successHandler?(response.result.value as AnyObject?, statusCode)
+                if statusCode == 401, let apiToken = UserDefaults.standard.userToken, !apiToken.isEmpty {
+                    NotificationCenter.default.post(name: .accessTokenExpired, object: nil)
                 }
         }
     }
     
-    func uploadAsset(image: UIImage,
-                     description: String?,
-                     successHandler: ((_ jsonDict: [String: Any]) -> Void)?,
-                     failureHandler: FailureHandler?) {
-        guard let apiToken = UserDefaults.standard.userToken, !apiToken.isEmpty else {
-            let error = NetworkError(title: "Invalid Permission", message: "Access token is required.", code: -1)
-            failureHandler?(error)
-            return
-        }
-        let imgData = image.orientationFixed.jpegData(compressionQuality: 0.2)!
-//        Alamofire.upload(
-//            multipartFormData: { multipartFormData in
-//                multipartFormData.append(imgData, withName: "file", fileName: "file.jpg", mimeType: "image/jpg")
-//                if let descriptionData = description?.data(using: .utf8) {
-//                    multipartFormData.append(descriptionData, withName: "description")
-//                }
-//                if let widthData = "\(Int(image.size.width))".data(using: .utf8) {
-//                    multipartFormData.append(widthData, withName: "width")
-//                }
-//                if let heightData = "\(Int(image.size.height))".data(using: .utf8) {
-//                    multipartFormData.append(heightData, withName: "height")
-//                }
-//        },
-//            to: API.assetImage,
-//            headers: ["Authorization": "Bearer \(apiToken)"])
-//        { (result) in
-//            switch result {
-//            case .success(let uploadRequest, _, _):
-//                uploadRequest.validate().responseJSON { response in
-//                    if let value = response.result.value as? [String: Any] {
-//                        successHandler?(value)
-//                    } else {
-//                        failureHandler?(NetworkError())
-//                    }
-//                }
-//                
-//            case .failure(let encodingError):
-//                let error = NetworkError(title: encodingError.localizedDescription, message: encodingError.localizedDescription, code: -1)
-//                failureHandler?(error)
-//            }
+    func uploadAsset(image: UIImage, description: String?) -> UploadRequest {
+        var headers: HTTPHeaders = [:]
+//        headers["Accept-Language"] = "en" // TODO: Support multiple languages if needed.
+//        if let apiToken = UserDefaults.standard.userToken, !apiToken.isEmpty {
+//            headers["Authorization"] = "Bearer \(apiToken)"
 //        }
+        let imgData = image.orientationFixed.jpegData(compressionQuality: 0.8)!
+        return AF.upload(multipartFormData: { multipartFormData in
+            multipartFormData.append(imgData, withName: "file", fileName: "file.jpg", mimeType: "image/jpg")
+            if let descriptionData = description?.data(using: .utf8) {
+                multipartFormData.append(descriptionData, withName: "description")
+            }
+            if let widthData = "\(Int(image.size.width))".data(using: .utf8) {
+                multipartFormData.append(widthData, withName: "width")
+            }
+            if let heightData = "\(Int(image.size.height))".data(using: .utf8) {
+                multipartFormData.append(heightData, withName: "height")
+            }
+        },
+                         to: "http://92shmw.natappfree.cc/photo/process?model=rain_princess",
+                         headers: headers)
     }
+    
+//    @discardableResult
+//    func sendFilterImage(image: UIImage) -> DataRequest {
+////        var parameters = [String: Any]()
+////        parameters["file"] = image
+//        var headers: HTTPHeaders = [:]
+//        headers["Accept-Language"] = "en"
+//        let imgData = image.orientationFixed.jpegData(compressionQuality: 0.2)!
+//        return AF.upload(multipartFormData: { multipartFormData in
+//            multipartFormData.append(imgData, withName: "file", fileName: "file.jpg", mimeType: "image/jpg")
+////            if let descriptionData = description?.data(using: .utf8) {
+////                multipartFormData.append(descriptionData, withName: "description")
+////            }
+////            if let widthData = "\(Int(image.size.width))".data(using: .utf8) {
+////                multipartFormData.append(widthData, withName: "width")
+////            }
+////            if let heightData = "\(Int(image.size.height))".data(using: .utf8) {
+////                multipartFormData.append(heightData, withName: "height")
+////            }
+//        },
+//        to: API.domain,
+//        headers: headers)
+//    }
+//    
     
     @discardableResult
     func sendCheckRegisterPhoneNumberRequest(phone: String) -> DataRequest {
@@ -139,10 +116,7 @@ class NetworkManager: NSObject {
         parameters["phone_number"] = phone
         return request(url: API.domain + "/utility/check_register_phone_number",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
     
     @discardableResult
@@ -151,71 +125,47 @@ class NetworkManager: NSObject {
         parameters["email"] = email
         return request(url: API.domain + "/utility/check_register_email",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
     
     @discardableResult
-    func sendRegistrationRequest(lastName: String,
-                                 firstName: String,
-                                 email: String,
-                                 phoneNumber: String,
-                                 password: String,
-                                 smsCode: String) -> DataRequest {
+    func sendRegisterRequest(name: String,
+        email: String,
+                             password: String,
+                             referralCode: String?,
+                             facebookToken: String? = nil,
+                             appleAuthenCodeString: String? = nil) -> DataRequest {
         var parameters = [String: Any]()
-        if lastName.areChinese && firstName.areChinese {
-            parameters["last_name"] = ""
-            parameters["first_name"] = ""
-            parameters["last_name_tc"] = lastName
-            parameters["first_name_tc"] = firstName
-        } else {
-            parameters["last_name"] = lastName
-            parameters["first_name"] = firstName
-            parameters["last_name_tc"] = ""
-            parameters["first_name_tc"] = ""
-        }
-        parameters["email"] = email
-        parameters["phone_number"] = phoneNumber
-        parameters["password"] = password
-        parameters["phone_sms"] = smsCode
-        return request(url: API.user,
-                       method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
-    }
-
-    // Response contains access token only.
-    @discardableResult
-    func sendEmailLoginRequest(email: String, password: String) -> DataRequest {
-        var parameters = [String: Any]()
+        parameters["name"] = name
         parameters["email"] = email
         parameters["password"] = password
-        addDeviceRelatedInfo(into: &parameters)
-        return request(url: API.authentication,
+//        parameters["profile_image_url"] = profileImageUrl
+        parameters["referral_code"] = referralCode
+        parameters["facebook_token"] = facebookToken
+        parameters["apple_code"] = appleAuthenCodeString
+        return request(url: API.domain + "/user",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
     
-    @discardableResult
-    func sendPasswordAuthRequest(phone: String, password: String) -> DataRequest {
-        var parameters = [String: Any]()
-        parameters["phone_number"] = phone
-        parameters["password"] = password
-        addDeviceRelatedInfo(into: &parameters)
-        return request(url: API.authentication,
-                       method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
-    }
+//    @discardableResult
+//       func sendRegisterRequest(name: String,
+//                                email: String,
+//                                profileImageUrl: String?,
+//                                appleAuthenCodeString: String? = nil) -> DataRequest {
+//           var parameters = [String: Any]()
+//           parameters["name"] = name
+//           parameters["email"] = email
+//           parameters["password"] = "12345678"
+//           parameters["profile_image_url"] = profileImageUrl
+//           parameters["apple_id"] = appleAuthenCodeString
+//           return request(url: API.domain + "/user",
+//                          method: .post,
+//                          parameters: parameters,
+//                          encoding: nil,
+//                          successHandler: nil,
+//                          failureHandler: nil)
+//       }
     
     @discardableResult
     func sendFacebookAuthRequest(fbToken: String) -> DataRequest {
@@ -224,10 +174,7 @@ class NetworkManager: NSObject {
         addDeviceRelatedInfo(into: &parameters)
         return request(url: API.domain + "/authentication/facebook",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
     
     @discardableResult
@@ -237,34 +184,79 @@ class NetworkManager: NSObject {
         addDeviceRelatedInfo(into: &parameters)
         return request(url: API.domain + "/authentication/apple",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
     
     @discardableResult
-    func sendCheckRegisterPhoneSMSRequest(phone: String, smsCode: String) -> DataRequest {
+    func sendCheckAppleExistenceIDRequest(userIdentifier: String) -> DataRequest {
         var parameters = [String: Any]()
-        parameters["phone_number"] = phone
-        parameters["phone_sms"] = smsCode
-        addDeviceRelatedInfo(into: &parameters)
-        return request(url: API.domain + "/utility/check_register_phone_sms",
+        parameters["apple_id"] = userIdentifier
+        return request(url: API.domain + "/utility/check_apple_id",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
+    }
+    
+    
+    // Response contains access token only.
+    @discardableResult
+    func sendLoginEmailRequest(email: String, password: String) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["email"] = email
+        parameters["password"] = password
+        addDeviceRelatedInfo(into: &parameters)
+        return request(url: API.domain + "/authentication",
+                       method: .post,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendFindPlanOrdersRequest(offset: Int) -> DataRequest {
+        return request(url: API.domain + "/plan_order",
+                       method: .get,
+                       parameters: ["$offset": offset])
+        
+    }
+    
+    @discardableResult
+    func sendCreatePlanOrderRequest(planId: Int, discountCode: String?) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["plan_id"] = planId
+        parameters["discount_code"] = discountCode
+        return request(url: API.domain + "/plan_order",
+                       method: .post,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendGetPlanOrderRequest(id: Int) -> DataRequest {
+        return request(url: API.domain + "/plan_order/\(id)",
+            method: .get,
+            parameters: nil)
+    }
+    
+    @discardableResult
+    func sendGetPromotionCodeRequest(code: String) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["code"] = code
+        return request(url: API.domain + "/promotion_code",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendGetDiscountCodeRequest(code: String) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["code"] = code
+        return request(url: API.domain + "/discount_code",
+                       method: .get,
+                       parameters: parameters)
     }
     
     @discardableResult
     func sendGettingUserProfileRequest() -> DataRequest {
-        return request(url: API.me,
+        return request(url: API.domain + "/me",
                        method: .get,
-                       parameters: nil,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: nil)
     }
     
     @discardableResult
@@ -272,12 +264,21 @@ class NetworkManager: NSObject {
         var parameters = [String: Any]()
         parameters["old_password"] = oldPassword
         parameters["password"] = newPassword
-        return request(url: API.editPassword,
+        return request(url: API.domain + "/me/password",
                        method: .patch,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendUpdateProfileRequest(name:String?, email:String?, profileImageUrl: String?, appReviewed: Bool?) -> DataRequest{
+        var parameters = [String: Any]()
+        parameters["name"] = name
+        parameters["email"] = email
+        parameters["profile_image_url"] = profileImageUrl == nil ? NSNull() : profileImageUrl
+        parameters["app_reviewed"] = appReviewed
+        return request(url: API.domain + "/me",
+                       method: .patch,
+                       parameters: parameters)
     }
     
     @discardableResult
@@ -287,67 +288,316 @@ class NetworkManager: NSObject {
         addDeviceRelatedInfo(into: &parameters)
         return request(url: API.domain + "/me/email",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
     
     @discardableResult
-    func sendResetPasswordRequest(email: String) -> DataRequest {
+    func sendForgotPasswordRequest(email: String) -> DataRequest {
         var parameters = [String: Any]()
         parameters["email"] = email
         addDeviceRelatedInfo(into: &parameters)
-        return request(url: API.forgotPassword,
+        return request(url: API.domain + "/utility/forgot_password",
                        method: .post,
-                       parameters: parameters,
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: parameters)
     }
-
+    
     
     
     @discardableResult
-    func sendGetStripeEphemeralKeyRequest(stripeVersion: String) -> DataRequest {
-        return request(url: API.domain + "/utility/get_stripe_ephemeral_keys",
+    func sendFindPlansRequest() -> DataRequest {
+        return request(url: API.domain + "/plan",
                        method: .get,
-                       parameters: ["stripe_version": stripeVersion],
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: nil)
+    }
+    
+    
+    @discardableResult
+    func sendGetPlanRequest(id: Int) -> DataRequest {
+        return request(url: API.domain + "/plan/\(id)",
+            method: .get,
+            parameters: nil)
+    }
+    
+    @discardableResult
+    func sendFindBrandRequest() -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["$limit"] = 100000
+        return request(url: API.domain + "/brand",
+                       method: .get,
+                       parameters: nil)
+    }
+    
+    @discardableResult
+    func sendFindCategoryRequest(brandId: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["brand_id"] = brandId
+        parameters["$limit"] = 100000
+        return request(url: API.domain + "/product_category",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendFindServiceLevelRequest() -> DataRequest {
+        return request(url: API.domain + "/service_level",
+                       method: .get,
+                       parameters: nil)
+    }
+    
+    @discardableResult
+    func sendGetServiceLevelRequest(serviceLevelId: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["id"] = serviceLevelId
+        //        parameters["title"] = serviceLevelTitle
+        //        parameters["credit"] = serviceLevelToken
+        return request(url: API.domain + "/service_level",
+                       method: .get,
+                       parameters: parameters)
     }
     
     @discardableResult
     func sendGetAppVersionRequest() -> DataRequest {
         return request(url: API.domain + "/app_version",
                        method: .get,
-                       parameters: ["device": "ios", "version": appVersion, "app": "client"],
-                       encoding: nil,
-                       successHandler: nil,
-                       failureHandler: nil)
+                       parameters: ["device": "ios", "version": appVersion, "app": "client"])
     }
-
+    
+    @discardableResult
+    func sendGetStripeEphemeralKeyRequest(stripeVersion: String) -> DataRequest {
+        return request(url: API.domain + "/utility/get_stripe_ephemeral_keys",
+                       method: .get,
+                       parameters: ["stripe_version": stripeVersion])
+    }
+    
+    
+    
     
     private func addDeviceRelatedInfo(into parameters: inout [String: Any]) {
-        parameters["app"] = "patient"
+        parameters["app"] = "client"
         parameters["app_version"] = appVersion
         parameters["device"] = "ios"
         parameters["device_version"] = UIDevice.current.systemVersion
     }
     
+    // MARK: - Check Request List (User)
+    @discardableResult
+    func sendFindProductCheckRequest(statuses: [String], offset: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        if statuses.count == 1 {
+            parameters["status"] = statuses[0]
+        } else if statuses.count == 2 {
+            parameters["$or[0][status]"] = statuses[0]
+            parameters["$or[1][status]"] = statuses[1]
+        }
+        parameters["role"] = "user"
+        parameters["$offset"] = offset
+        return request(url: API.domain + "/product_check_request",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendFindProductWithoutStatusCheckRequest(offset: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["role"] = "user"
+        parameters["$offset"] = offset
+        return request(url: API.domain + "/product_check_request",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendFindProductPendingCheckRequest() -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["$or[0][status]"] = "checker_check_pending"
+        parameters["role"] = "user"
+        return request(url: API.domain + "/product_check_request",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendGetProductCheckRequestForUser(id: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["role"] = "user"
+        return request(url: API.domain + "/product_check_request/\(id)",
+            method: .get,
+            parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendGetProductCheckRequestForChecker(id: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["role"] = "checker"
+        return request(url: API.domain + "/product_check_request/\(id)",
+            method: .get,
+            parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendCreateProductCheckRequest(productTitle: String,
+                                       brandId: Int,
+                                       categoryId: Int,
+                                       serviceLevelId: Int,
+                                       userRemark: String?,
+                                       images: [[String: Any]]) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["product_title"] = productTitle
+        parameters["brand_id"] = brandId
+        parameters["category_id"] = categoryId
+        parameters["service_level_id"] = serviceLevelId
+        parameters["user_remark"] = userRemark
+        parameters["images"] = images.isEmpty ? nil : images
+        parameters["role"] = "user"
+        return request(url: API.domain + "/product_check_request",
+                       method: .post,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendUpdateProductCheckRequestRequest(id: Int,
+                                              userRemark: String?,
+                                              images: [[String: Any]]) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["status"] = "checker_check_pending"
+        parameters["user_remark"] = userRemark
+        parameters["images"] = images.isEmpty ? nil : images
+        return request(url: API.domain + "/product_check_request/\(id)?role=user",
+            method: .patch,
+            parameters: parameters)
+    }
+    // MARK: - Check Request List (Feed)
+    
+    @discardableResult
+    func sendFindRequestFeedCommentsRequest(checkRequstId: Int, offset: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["$offset"] = offset
+        parameters["$limit"] = 25
+        return request(url: API.domain + "/product_check_request_feed/\(checkRequstId)/comment",
+            method: .get,
+            parameters: parameters)
+        
+    }
+    
+    @discardableResult
+    func sendFindProductCheckFeedRequest(offset: Int, keyword: String? = nil, brandId: Int? = nil) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["$limit"] = 10
+        parameters["$offset"] = offset
+        parameters["brand_id"] = brandId
+        parameters["keyword"] = keyword
+        parameters["$sort[created_at]"] = -1
+        return request(url: API.domain + "/product_check_request_feed",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendGetProductCheckFeedRequest(id: Int) -> DataRequest {
+        return request(url: API.domain + "/product_check_request_feed/\(id)",
+            method: .get,
+            parameters: nil)
+    }
+    
+    @discardableResult
+    func sendFindCompletedTotalRequest() -> DataRequest {
+        return request(url: API.domain + "/product_check_request_feed_total",
+                       method: .get,
+                       parameters: nil)
+    }
+    
+    @discardableResult
+    func sendAddCommentRequest(id: Int, comment: String) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["comment"] = comment
+        return request(url: API.domain + "/product_check_request_feed/\(id)/comment",
+            method: .post,
+            parameters: parameters)
+    }
+    
+    @discardableResult
+    func sendDeleteCommentRequest(id: Int) -> DataRequest {
+        return request(url: API.domain + "/product_check_request_feed/comment/\(id)",
+            method: .delete,
+            parameters: nil)
+    }
+    
+    @discardableResult
+    func sendLikeOrUnlikeFeedItemRequest(id: Int, toLike: Bool) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["like"] = toLike
+        return request(url: API.domain + "/product_check_request_feed/\(id)/like",
+            method: .post,
+            parameters: parameters)
+    }
+    
+    // MARK: - Check Request List (Checker)
+    
+    
+    @discardableResult
+    func sendCheckerFindCheckRequestsRequest(statuses: [String], offset: Int, checkId: Int?, query: String?) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["checker_id"] = checkId
+        if statuses.count == 1 {
+            parameters["status"] = statuses[0]
+        } else if statuses.count == 2 {
+            parameters["$or[0][status]"] = statuses[0]
+            parameters["$or[1][status]"] = statuses[1]
+        }
+        if let query = query {
+            parameters["$or[0][uuid][$like]"] = "%\(query)%"
+        }
+        parameters["role"] = "checker"
+        parameters["$offset"] = offset
+        return request(url: API.domain + "/product_check_request",
+                       method: .get,
+                       parameters: parameters)
+    }
+    
+    @discardableResult
+       func sendCheckerFindCheckRequestsWithoutStatusRequest(offset: Int, checkId: Int?) -> DataRequest {
+           var parameters = [String: Any]()
+           parameters["role"] = "checker"
+           parameters["$offset"] = offset
+           return request(url: API.domain + "/product_check_request",
+                          method: .get,
+                          parameters: parameters)
+       }
+    
+    @discardableResult
+    func sendCheckerGetCheckRequestRequest(id: Int) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["role"] = "checker"
+        return request(url: API.domain + "/product_check_request/\(id)",
+            method: .get,
+            parameters: parameters)
+    }
+    
+    /// <#Description#>
+    /// - Parameter id: <#id description#>
+    /// - Parameter status: <#status description#>
+    /// - Parameter result: String or NSNull()
+    /// - Parameter checkerCheckSummary: <#checkerCheckSummary description#>
+    /// - Parameter checkId: Int or NSNull()
+    @discardableResult
+    func sendCheckerUpdateCheckRequestRequest(id: Int,
+                                              status: String?,
+                                              result: Any?,
+                                              summary: String?,
+                                              checkerId: Any?) -> DataRequest {
+        var parameters = [String: Any]()
+        parameters["status"] = status
+        parameters["result"] = result
+        parameters["checker_check_summary"] = summary
+        parameters["checker_id"] = checkerId
+        return request(url: API.domain + "/product_check_request/\(id)?role=checker",
+            method: .patch,
+            parameters: parameters)
+    }
+    
     // MARK: - Deprecated APIs
     
     
-}
-
-extension NetworkManager {
-    /// The date formatter for posting date information to server.
-    static let datePostingFormatter: DateFormatter = {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        return fmt
-    }()
 }
 
 #if canImport(SwiftyJSON)
@@ -357,12 +607,7 @@ extension DataRequest {
     
     func onError(handler: @escaping (Error) -> Void) -> Self {
         return responseJSON { response in
-            guard response.result.isFailure else { return }
-            if NetworkManager.shared.suppressesOnErrorIfCancelled {
-                if let error = response.error as NSError?, error.code == NSURLErrorCancelled {
-                    return
-                }
-            }
+            guard response.value == nil else { return }
             if let data = response.data, !data.isEmpty {
                 let apiError = APIError(json: JSON(data))
                 dprint("------- Error \(apiError.code) -------")
@@ -378,7 +623,7 @@ extension DataRequest {
     @discardableResult
     func onSuccess(handler: @escaping (SwiftyJSON.JSON) -> Void) -> Self {
         return responseJSON { response in
-            if let value = response.result.value {
+            if let value = response.value {
                 handler(JSON(value))
                 dprint("-------- Success --------")
                 dprint((response.request?.httpMethod ?? "N/A") + " " + (response.request?.url?.absoluteString ?? "N/A"))
@@ -417,6 +662,9 @@ extension Error {
         }
         return nil
     }
+    var isCancel: Bool {
+        (self as NSError).code == NSURLErrorCancelled
+    }
 }
 
 extension MBProgressHUD {
@@ -434,7 +682,12 @@ extension MBProgressHUD {
                     detailText = String(format: format, locale: .languageAssociated, code)
                 }
             case let err as NSError:
-                detailText = String(format: format, locale: .languageAssociated, err.code)
+                if err.code == NSURLErrorNotConnectedToInternet {
+                    text = NSLocalizedString("We couldn’t connect to the server.", bundle: .language, comment: "HUD message")
+                    detailText = NSLocalizedString("Please check your network.", bundle: .language, comment: "HUD message")
+                } else {
+                    detailText = String(format: format, locale: .languageAssociated, err.code)
+                }
             default:
                 break
             }
@@ -467,7 +720,7 @@ extension MBProgressHUD {
         hide(animated: true)
     }
     #endif
-
+    
 }
 #if DEVELOPMENT
 fileprivate extension UIButton {

@@ -95,9 +95,9 @@ struct API {
     
     /// The server domain
     #if DEVELOPMENT
-    static let domain = "https://api-dev.mobidoc.hk/patient"
+    static let domain = "http://127.0.0.1:10000/photo/process?model=rain_princess"
     #else
-    static let domain = "https://api.mobidoc.hk/patient"
+    static let domain = "http://127.0.0.1:10000/photo/process?model=rain_princess"
     #endif
     
     static var termsOfService: String {

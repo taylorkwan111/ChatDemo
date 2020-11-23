@@ -2,7 +2,7 @@
 # platform :ios, '10.0'
 use_frameworks!
 target 'ProjectDemo' do
-  pod 'Alamofire', '~> 4.9.1'
+  pod 'Alamofire'
   pod 'SwiftyJSON'
   pod 'SDWebImage'
   pod 'SnapKit'
@@ -18,4 +18,5 @@ target 'ProjectDemo' do
   pod 'ChatViewController'
   pod 'Kingfisher'
   pod 'SwiftyJSON'
+  pod 'Starscream'
 end

@@ -19,7 +19,11 @@ class RobotViewController: UIViewController {
        
     }
 
-
+    @IBAction func robotButtonDidPRess(_ sender: Any) {
+        let vc = FilterViewController()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
     /*
     // MARK: - Navigation
 

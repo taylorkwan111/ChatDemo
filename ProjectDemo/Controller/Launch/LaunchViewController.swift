@@ -13,7 +13,7 @@ class LaunchViewController: BaseViewController {
     
     
     var shouldSkipLogin: Bool {
-        return true
+        return false
 //        return UserDefaults.standard.userToken != nil
     }
     

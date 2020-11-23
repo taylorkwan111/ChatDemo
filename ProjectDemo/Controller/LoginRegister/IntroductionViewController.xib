@@ -46,28 +46,32 @@
                                 <constraint firstItem="6pm-tB-tEf" firstAttribute="height" secondItem="STi-fy-6sq" secondAttribute="height" id="i5e-fK-t4N"/>
                             </constraints>
                         </stackView>
-                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="sumbit" translatesAutoresizingMaskIntoConstraints="NO" id="QH4-Oq-G5g">
-                            <rect key="frame" x="122" y="384" width="80" height="100"/>
-                            <constraints>
-                                <constraint firstAttribute="width" constant="80" id="7x7-jI-hPh"/>
-                                <constraint firstAttribute="height" constant="100" id="PA6-oK-3Al"/>
-                            </constraints>
-                        </imageView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Please Login" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qNT-Z9-2gm">
                             <rect key="frame" x="102.5" y="60" width="119.5" height="24"/>
                             <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                             <color key="textColor" red="0.88002341989999999" green="0.91819447279999999" blue="0.92491072419999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <nil key="highlightedColor"/>
                         </label>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0VW-8c-l7b">
+                            <rect key="frame" x="122" y="399" width="80" height="80"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="80" id="RIH-hb-Bs7"/>
+                                <constraint firstAttribute="height" constant="80" id="r3U-no-8Gj"/>
+                            </constraints>
+                            <state key="normal" title="Button" image="sumbit"/>
+                            <connections>
+                                <action selector="buttonDidPress:" destination="-1" eventType="touchUpInside" id="igz-wX-Tbo"/>
+                            </connections>
+                        </button>
                     </subviews>
                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                     <constraints>
                         <constraint firstItem="qNT-Z9-2gm" firstAttribute="centerX" secondItem="KsV-jc-9FR" secondAttribute="centerX" id="4fg-mY-xCf"/>
                         <constraint firstItem="qNT-Z9-2gm" firstAttribute="top" secondItem="KsV-jc-9FR" secondAttribute="top" constant="60" id="96n-Uc-iEc"/>
-                        <constraint firstItem="QH4-Oq-G5g" firstAttribute="centerX" secondItem="KsV-jc-9FR" secondAttribute="centerX" id="Jyk-pg-a23"/>
                         <constraint firstAttribute="trailing" secondItem="0QW-WW-EQM" secondAttribute="trailing" constant="20" id="X1t-nc-4DT"/>
+                        <constraint firstItem="0VW-8c-l7b" firstAttribute="centerY" secondItem="KsV-jc-9FR" secondAttribute="centerY" constant="80" id="cWT-hF-UMo"/>
                         <constraint firstItem="0QW-WW-EQM" firstAttribute="top" secondItem="qNT-Z9-2gm" secondAttribute="bottom" constant="60" id="cp5-oc-SOq"/>
-                        <constraint firstItem="QH4-Oq-G5g" firstAttribute="top" secondItem="0QW-WW-EQM" secondAttribute="bottom" constant="80" id="hOc-DR-Hbg"/>
+                        <constraint firstItem="0VW-8c-l7b" firstAttribute="centerX" secondItem="KsV-jc-9FR" secondAttribute="centerX" id="jGg-XX-MrT"/>
                         <constraint firstItem="0QW-WW-EQM" firstAttribute="leading" secondItem="KsV-jc-9FR" secondAttribute="leading" constant="20" id="viX-J8-hcU"/>
                     </constraints>
                 </view>

@@ -8,30 +8,50 @@
 
 import UIKit
 import ChatViewController
+import Starscream
+
 
 class ChatEachOtherViewController: ChatViewController {
     
-    init(viewModel: MessageViewModel!) {
-           self.viewModel = viewModel
-           super.init(nibName: nil, bundle: nil)
-       }
-       
-       required init?(coder: NSCoder) {
-           fatalError("init(coder:) has not been implemented")
-       }
+//    var chatManager = ChatManager()
+//    var socket: WebSocket!
+//    var isConnected = false
+    //    let server = WebSocketServer()
+    var socketManager = WebSocketManager.shared
+    
+   
     
     var viewModel: MessageViewModel!
     var imagePickerHelper: ImagePickerHelper?
     var numberUserTypings = 0
     
+    init(viewModel: MessageViewModel!) {
+           self.viewModel = viewModel
+           super.init(nibName: nil, bundle: nil)
+       }
 
+       required init?(coder: NSCoder) {
+           fatalError("init(coder:) has not been implemented")
+       }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        connectServer()
         setupUI()
         setupData()
         bindViewModel()
-//         Get user data firstly
+        //         Get user data firstly
+        //        let client = TCPClient(address: "localhost", port: 21567)
+        
+//        var request = URLRequest(url: URL(string: "ws://127.0.0.1:21567")!)
+//        //https://localhost:8080
+//        request.timeoutInterval = 5
+//        socket = WebSocket(request: request)
+//        socket.delegate = self
+//        socket.connect()
+//        socket.disconnect()
+        
+//        socket.write(string: "hekkk")
         DispatchQueue.main.async { [weak self] in
             self?.viewModel.getUserData()
         }
@@ -42,6 +62,81 @@ class ChatEachOtherViewController: ChatViewController {
             }
         }
     }
+    func connectServer() {
+        socketManager.connect()
+    }
+    
+    /// 断开连接
+    func disConnect() {
+        socketManager.disConnect()
+    }
+    
+    /// 连接服务器后,发送avatar注册身份
+//    func register() {
+//        socketManager.sendString(string: avatar)
+//    }
+    
+    /// 发送消息
+    /// - Parameter string: 消息字符串
+    func sendMessage(_ string: String) {
+        socketManager.sendString(string: string)
+    }
+    
+//    func recieveMessage(_ string: String) {
+//           guard let dataFromString = string.data(using: .utf8, allowLossyConversion: false) else {
+//               fatalError("Can not load data from string.")
+//           }
+//           let json = try! JSON(data: dataFromString)
+//           if json["type"].string == "color" {
+//               let now = Date()
+//               let msg = Message(time: now.description(with: .autoupdatingCurrent), author: "System", text: "Login with \(json["data"].string ?? "error") color.", color: json["data"].string ?? "error")
+//               addMessage.append(msg)
+//           } else if json["type"].string == "history" {
+//               for (_,dict):(String, JSON) in json["data"] {
+//                   self.dealWithMessage(dict)
+//               }
+//           } else if json["type"].string == "message" {
+//               self.dealWithMessage(json["data"])
+//           }
+//       }
+//    // MARK: - WebSocketDelegate
+//    func didReceive(event: WebSocketEvent, client: WebSocket) {
+//        switch event {
+//        case .connected(let headers):
+//            isConnected = true
+//            print("websocket is connected: \(headers)")
+//        case .disconnected(let reason, let code):
+//            isConnected = false
+//            print("websocket is disconnected: \(reason) with code: \(code)")
+//        case .text(let string):
+//            print("Received text: \(string)")
+//        case .binary(let data):
+//            print("Received data: \(data.count)")
+//        case .ping(_):
+//            break
+//        case .pong(_):
+//            break
+//        case .viabilityChanged(_):
+//            break
+//        case .reconnectSuggested(_):
+//            break
+//        case .cancelled:
+//            isConnected = false
+//        case .error(let error):
+//            isConnected = false
+//            handleError(error)
+//        }
+//    }
+//
+//    func handleError(_ error: Error?) {
+//        if let e = error as? WSError {
+//            print("websocket encountered an error: \(e.message)")
+//        } else if let e = error {
+//            print("websocket encountered an error: \(e.localizedDescription)")
+//        } else {
+//            print("websocket encountered an error")
+//        }
+//    }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -86,6 +181,9 @@ class ChatEachOtherViewController: ChatViewController {
         let message = Message(id: UUID().uuidString, sendByID: currentUser.id,
                               createdAt: Date(), text: chatBarView.textView.text)
         addMessage(message)
+        socketManager.sendString(string: chatBarView.textView.text)
+        
+//        socket.write(string: chatBarView.textView.text)
         super.didPressSendButton(sender)
     }
     
@@ -111,6 +209,7 @@ class ChatEachOtherViewController: ChatViewController {
         print("URL \(url!)")
     }
 }
+
 
 extension ChatEachOtherViewController {
     
@@ -254,5 +353,6 @@ extension ChatEachOtherViewController {
         tableView.scrollToFirstCell()
     }
 }
+
 
 

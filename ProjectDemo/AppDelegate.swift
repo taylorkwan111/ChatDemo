@@ -54,7 +54,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UIView.appearance().tintColor = .themeTint
         UINavigationBar.appearance().isTranslucent = false
         UINavigationBar.appearance().shadowImage = UIImage()
-        
+//        UserDefaults.standard.userToken = "1323243"
         dprint("Access Token == \(UserDefaults.standard.userToken ?? "nil")")
         
         

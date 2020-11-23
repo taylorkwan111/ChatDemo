@@ -37,4 +37,5 @@ struct User: Userable, Decodable {
         case name
         case avatarURL = "avatar_url"
     }
+  
 }

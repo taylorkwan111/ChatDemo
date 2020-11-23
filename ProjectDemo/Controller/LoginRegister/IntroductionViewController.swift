@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SwiftyJSON
 
 class IntroductionViewController: UIViewController {
 
@@ -27,7 +28,16 @@ class IntroductionViewController: UIViewController {
         }
         // Do any additional setup after loading the view.
     }
-
+    
+    @IBAction func buttonDidPress(_ sender: Any) {
+        
+        
+            let tabBarController = MainTabBarController()
+            self.navigationController?.pushViewController(tabBarController, animated: false)
+       
+    }
+    
+    
 }
 
 
