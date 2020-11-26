@@ -22,7 +22,7 @@ struct Message: Decodable {
     let sendByID: Int!
     let createdAt: Date!
     let updatedAt: Date?
-    var isOutgoing: Bool = true
+    var isOutgoing: Bool!
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -32,25 +32,28 @@ struct Message: Decodable {
         case sendByID = "sender_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case isOutgoing
     }
 
-    init(id: String, type: MessageType, sendByID: Int, createdAt: Date) {
+    init(id: String, type: MessageType, sendByID: Int, createdAt: Date, isOutgoing: Bool) {
         self.id = id
         self.type = type
         self.sendByID = sendByID
         self.createdAt = createdAt
         self.updatedAt = createdAt
+        self.isOutgoing = isOutgoing
+        
     }
 
     /// Initialize outgoing text message
-    init(id: String, sendByID: Int, createdAt: Date, text: String) {
-        self.init(id: id, type: .text, sendByID: sendByID, createdAt: createdAt)
+    init(id: String, sendByID: Int, createdAt: Date, text: String, isOutgoing: Bool) {
+        self.init(id: id, type: .text, sendByID: sendByID, createdAt: createdAt, isOutgoing: isOutgoing)
         self.text = text
     }
 
     /// Initialize outgoing file message
-    init(id: String, sendByID: Int, createdAt: Date, file: FileInfo) {
-        self.init(id: id, type: .file, sendByID: sendByID, createdAt: createdAt)
+    init(id: String, sendByID: Int, createdAt: Date, file: FileInfo, isOutgoing: Bool) {
+        self.init(id: id, type: .file, sendByID: sendByID, createdAt: createdAt, isOutgoing: isOutgoing)
         self.file = file
     }
 

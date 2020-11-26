@@ -7,6 +7,7 @@
 //
 
 import Starscream
+import SwiftyJSON
 
 class WebSocketManager {
     // 单例
@@ -36,6 +37,9 @@ class WebSocketManager {
         socket.disconnect()
     }
     
+    
+      
+    
     /// 重新连接
     func reConnect() {
         if(isConnected) {
@@ -48,6 +52,16 @@ class WebSocketManager {
     func sendString(string: String) {
         socket.write(string: string)
     }
+    
+//    // 将收到的String转化为Message,写得很烂,因为Codable协议用不了,JSON同参不同型,暂未找到解决方案,用了最蠢的SwiftyJSON
+//    func recieveMessage(_ string: String) {
+//        guard let dataFromString = string.data(using: .utf8, allowLossyConversion: false) else {
+//            fatalError("Can not load data from string.")
+//        }
+//       
+//    }
+//    
+    
     
     @objc func onNetworkStatusChange() {
         

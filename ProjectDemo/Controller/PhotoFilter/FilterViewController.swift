@@ -125,11 +125,11 @@ class FilterViewController: UIViewController {
 //        }
 //
         var headers: HTTPHeaders = [:]
-        let imgData = newAvatar.orientationFixed.jpegData(compressionQuality: 0.98)!
+        let imgData = newAvatar.orientationFixed.jpegData(compressionQuality: 0.1)!
         AF.upload(multipartFormData: { multipartFormData in
             multipartFormData.append(imgData, withName: "file", fileName: "file.jpg", mimeType: "image/jpg")
         },
-        to: "http://m7eyi3.natappfree.cc/photo/process?model=rain_princess",
+        to: "http://vd4enx.natappfree.cc/photo/process?model=rain_princess",
         headers: headers).response { response in
             if let data = response.value {
                 let image = UIImage(data: data!)
@@ -177,16 +177,20 @@ extension FilterViewController: UICollectionViewDelegate, UICollectionViewDataSo
             let selectedImage = selectedImagesEnum[indexPath.item]
             switch selectedImage {
             case .image(let image, _, _):
+                cell.iconImageView.isHidden = false
                 cell.setImage(image)
     //            newAvatar = image
             case .add:
                 // Returns the `add` button cell instead a normal image cell.
+                cell.iconImageView.isHidden = false
                 cell.reset()
             case .uploadedImage(let image):
                 cell.setImageWithUrL(image.imageUrl)
+                cell.iconImageView.isHidden = false
             }
             return cell
         default:
+            cell.iconImageView.isHidden = true
             cell.setImage(filterImage)
             return cell
         }
@@ -195,11 +199,21 @@ extension FilterViewController: UICollectionViewDelegate, UICollectionViewDataSo
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedImage = selectedImagesEnum[indexPath.item]
-        switch selectedImage {
-        case .uploadedImage:
-            break
+        switch collectionView {
+        case self.filterCollectionView:
+            ImageBrowserViewController(contentSource: .image([self.filterImage])).do {
+                $0.preselectedIndex = indexPath.row
+//                $0.isShareImagesEnabled = true
+//                $0.isSaveToAlbumEnabled = true
+                present($0, animated: true, completion: nil)
+            }
         default:
-            presentPickPhotoActionSheet(atIndex: indexPath.item)
+            switch selectedImage {
+            case .uploadedImage:
+                break
+            default:
+                presentPickPhotoActionSheet(atIndex: indexPath.item)
+            }
         }
     }
 }

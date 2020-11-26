@@ -9,17 +9,18 @@
 import UIKit
 import ChatViewController
 import Starscream
+import SwiftyJSON
 
-
-class ChatEachOtherViewController: ChatViewController {
+class ChatEachOtherViewController: ChatViewController, WebSocketDelegate {
     
 //    var chatManager = ChatManager()
 //    var socket: WebSocket!
-//    var isConnected = false
+    var isConnected = false
+    
     //    let server = WebSocketServer()
     var socketManager = WebSocketManager.shared
-    
-   
+    var avatar: String = ""
+    var messages: [Message] = []
     
     var viewModel: MessageViewModel!
     var imagePickerHelper: ImagePickerHelper?
@@ -38,20 +39,10 @@ class ChatEachOtherViewController: ChatViewController {
         super.viewDidLoad()
         connectServer()
         setupUI()
+//        register()
         setupData()
         bindViewModel()
-        //         Get user data firstly
-        //        let client = TCPClient(address: "localhost", port: 21567)
-        
-//        var request = URLRequest(url: URL(string: "ws://127.0.0.1:21567")!)
-//        //https://localhost:8080
-//        request.timeoutInterval = 5
-//        socket = WebSocket(request: request)
-//        socket.delegate = self
-//        socket.connect()
-//        socket.disconnect()
-        
-//        socket.write(string: "hekkk")
+        socketManager.socket.delegate = self
         DispatchQueue.main.async { [weak self] in
             self?.viewModel.getUserData()
         }
@@ -62,6 +53,14 @@ class ChatEachOtherViewController: ChatViewController {
             }
         }
     }
+    
+    
+    /// 连接服务器后,发送avatar注册身份
+    func register() {
+        socketManager.sendString(string: avatar)
+    }
+    
+    
     func connectServer() {
         socketManager.connect()
     }
@@ -78,65 +77,68 @@ class ChatEachOtherViewController: ChatViewController {
     
     /// 发送消息
     /// - Parameter string: 消息字符串
+    
     func sendMessage(_ string: String) {
         socketManager.sendString(string: string)
     }
     
-//    func recieveMessage(_ string: String) {
-//           guard let dataFromString = string.data(using: .utf8, allowLossyConversion: false) else {
-//               fatalError("Can not load data from string.")
-//           }
-//           let json = try! JSON(data: dataFromString)
-//           if json["type"].string == "color" {
-//               let now = Date()
-//               let msg = Message(time: now.description(with: .autoupdatingCurrent), author: "System", text: "Login with \(json["data"].string ?? "error") color.", color: json["data"].string ?? "error")
-//               addMessage.append(msg)
-//           } else if json["type"].string == "history" {
-//               for (_,dict):(String, JSON) in json["data"] {
-//                   self.dealWithMessage(dict)
-//               }
-//           } else if json["type"].string == "message" {
-//               self.dealWithMessage(json["data"])
-//           }
-//       }
-//    // MARK: - WebSocketDelegate
-//    func didReceive(event: WebSocketEvent, client: WebSocket) {
-//        switch event {
-//        case .connected(let headers):
-//            isConnected = true
-//            print("websocket is connected: \(headers)")
-//        case .disconnected(let reason, let code):
-//            isConnected = false
-//            print("websocket is disconnected: \(reason) with code: \(code)")
-//        case .text(let string):
-//            print("Received text: \(string)")
-//        case .binary(let data):
-//            print("Received data: \(data.count)")
-//        case .ping(_):
-//            break
-//        case .pong(_):
-//            break
-//        case .viabilityChanged(_):
-//            break
-//        case .reconnectSuggested(_):
-//            break
-//        case .cancelled:
-//            isConnected = false
-//        case .error(let error):
-//            isConnected = false
-//            handleError(error)
-//        }
-//    }
-//
-//    func handleError(_ error: Error?) {
-//        if let e = error as? WSError {
-//            print("websocket encountered an error: \(e.message)")
-//        } else if let e = error {
-//            print("websocket encountered an error: \(e.localizedDescription)")
-//        } else {
-//            print("websocket encountered an error")
-//        }
-//    }
+    func recieveMessage(_ string: String) {
+        guard let dataFromString = string.data(using: .utf8, allowLossyConversion: false) else {
+                   fatalError("Can not load data from string.")
+        }
+        print(dataFromString)
+        
+        let json = try! JSON(data: dataFromString)
+        self.dealWithMessage(json["data"])
+    }
+    
+    
+    // 手动将JSON格式的Message转为Message Model
+    func dealWithMessage(_ dict: JSON) {
+        let text = dict["text"].string ?? ""
+        addMessage(Message(id: UUID().uuidString, sendByID: 1 , createdAt: Date(), text: text, isOutgoing: false))
+    }
+    
+    // MARK: - WebSocketDelegate
+    
+    func didReceive(event: WebSocketEvent, client: WebSocket) {
+        switch event {
+        case .connected(let headers):
+            isConnected = true
+            print("websocket is connected: \(headers)")
+        case .disconnected(let reason, let code):
+            isConnected = false
+            print("websocket is disconnected: \(reason) with code: \(code)")
+        case .text(let string):
+            self.recieveMessage(string)
+            print("Received text: \(string)")
+        case .binary(let data):
+            print("Received data: \(data.count)")
+        case .ping(_):
+            break
+        case .pong(_):
+            break
+        case .viabilityChanged(_):
+            break
+        case .reconnectSuggested(_):
+            break
+        case .cancelled:
+            isConnected = false
+        case .error(let error):
+            isConnected = false
+            handleError(error)
+        }
+    }
+
+    func handleError(_ error: Error?) {
+        if let e = error as? WSError {
+            print("websocket encountered an error: \(e.message)")
+        } else if let e = error {
+            print("websocket encountered an error: \(e.localizedDescription)")
+        } else {
+            print("websocket encountered an error")
+        }
+    }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -179,7 +181,7 @@ class ChatEachOtherViewController: ChatViewController {
         }
         
         let message = Message(id: UUID().uuidString, sendByID: currentUser.id,
-                              createdAt: Date(), text: chatBarView.textView.text)
+                              createdAt: Date(), text: chatBarView.textView.text, isOutgoing: true)
         addMessage(message)
         socketManager.sendString(string: chatBarView.textView.text)
         
@@ -214,7 +216,7 @@ class ChatEachOtherViewController: ChatViewController {
 extension ChatEachOtherViewController {
     
     private func setupUI() {
-        title = "Liliana"
+        title = "Tom"
         addBackBarButton()
         
         /// Tableview
