@@ -1,9 +1,9 @@
 //
-//  WebSocketManager.swift
-//  WebSocketDemo
+//  RobotViewController.swift
+//  ProjectDemo
 //
-//  Created by 姬向阳 on 2020/5/7.
-//  Copyright © 2020 SUNNYJ. All rights reserved.
+//  Created by 邓唯 on 2020/11/12.
+//  Copyright © 2020 Binatir. All rights reserved.
 //
 
 import Starscream

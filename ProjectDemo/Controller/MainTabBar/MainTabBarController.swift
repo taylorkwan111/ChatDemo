@@ -1,9 +1,9 @@
 //
-//  MainTabBarViewController.swift
-//  Drip
+//  MainTabBarController.swift
+//  ProjectDemo
 //
-//  Created by sunsetwan on 2019/8/12.
-//  Copyright © 2019 Drip. All rights reserved.
+//  Created by 邓唯 on 2020/11/12.
+//  Copyright © 2020 Binatir. All rights reserved.
 //
 
 import UIKit

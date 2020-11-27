@@ -1,9 +1,9 @@
 //
 //  LaunchViewController.swift
-//  Myblex
+//  ProjectDemo
 //
-//  Created by Hesse Huang on 24/2/2020.
-//  Copyright © 2020 Hesse. All rights reserved.
+//  Created by 邓唯 on 2020/11/12.
+//  Copyright © 2020 Binatir. All rights reserved.
 //
 
 import SnapKit

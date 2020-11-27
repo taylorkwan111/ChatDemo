@@ -1,9 +1,9 @@
 //
 //  AlertViewController.swift
-//  MobiDoc-Patient
+//  ProjectDemo
 //
-//  Created by Hesse Huang on 14/6/2018.
-//  Copyright © 2018 bichenkk. All rights reserved.
+//  Created by 邓唯 on 2020/11/12.
+//  Copyright © 2020 Binatir. All rights reserved.
 //
 
 import UIKit

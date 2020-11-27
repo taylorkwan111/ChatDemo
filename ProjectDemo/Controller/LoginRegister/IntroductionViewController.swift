@@ -1,9 +1,9 @@
 //
 //  IntroductionViewController.swift
-//  CheckCheck
+//  ProjectDemo
 //
-//  Created by Hesse Huang on 25/9/2019.
-//  Copyright © 2019 Binatir. All rights reserved.
+//  Created by 邓唯 on 2020/11/12.
+//  Copyright © 2020 Binatir. All rights reserved.
 //
 
 import UIKit
